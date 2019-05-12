@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Spotify Extensions</string>
+    <string name="shuffleText">Shuffle&#032;</string>
 </resources>
