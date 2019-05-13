@@ -1,5 +1,7 @@
 package com.shayank.spotifyextensions;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,6 +14,7 @@ import com.spotify.android.appremote.api.Connector;
 import com.spotify.android.appremote.api.SpotifyAppRemote;
 
 import com.spotify.protocol.client.CallResult;
+import com.spotify.protocol.error.SpotifyAppRemoteException;
 import com.spotify.protocol.types.PlayerState;
 
 public class MainActivity extends AppCompatActivity {
@@ -28,6 +31,14 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        Intent intent = getIntent();
+        String action = intent.getAction();
+        Uri data = intent.getData();
+        if (data != null) {
+            Log.d("MainActivity", data.getHost());
+        } else {
+            Log.d("MainActivity", "Intent data has no host");
+        }
     }
 
     @Override
@@ -37,19 +48,31 @@ public class MainActivity extends AppCompatActivity {
         shuffleSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
-                if (connected){
-                    mSpotifyAppRemote.getPlayerApi().setShuffle(isChecked);
-                } else {
-                    Log.d("MainActivity", "Cannot complete shuffle toggle as spotify is not connected");
-                }
+                toggleShuffle(isChecked);
             }
         });
+
+        connect();
+        if (connected) {
+            connected();
+        }
 
         nextTrackPicker = findViewById(R.id.nextTrackPicker);
         nextTrackPicker.setMinValue(1);
         nextTrackPicker.setMaxValue(100);
         nextTrackPicker.setWrapSelectorWheel(true);
+    }
 
+    private void toggleShuffle(boolean toShuffle) {
+        if (connected){
+            mSpotifyAppRemote.getPlayerApi().setShuffle(toShuffle);
+        } else {
+            Log.d("MainActivity", "Cannot complete shuffle toggle as spotify is not connected");
+            connect();
+        }
+    }
+
+    private void connect() {
         ConnectionParams connectionParams =
                 new ConnectionParams.Builder(CLIENT_ID)
                         .setRedirectUri(REDIRECT_URI)
@@ -64,7 +87,6 @@ public class MainActivity extends AppCompatActivity {
                         Log.d("MainActivity", "Connected! Yay!");
 
                         connected = true;
-                        connected();
                     }
 
                     @Override
@@ -74,9 +96,6 @@ public class MainActivity extends AppCompatActivity {
                         connected = false;
                     }
                 });
-    }
-
-    private void toggleShuffle(boolean toShuffle) {
     }
 
     private void connected() {
@@ -96,6 +115,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
         SpotifyAppRemote.disconnect(mSpotifyAppRemote);
+        connected = false;
 
     }
 }
