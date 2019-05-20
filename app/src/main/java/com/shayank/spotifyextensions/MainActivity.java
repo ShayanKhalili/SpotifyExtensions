@@ -37,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
         if (data != null) {
             Log.d("MainActivity", data.getHost());
         } else {
-            Log.d("MainActivity", "Intent data has no host");
+            Log.d("MainActivity", "Intent has no data");
         }
     }
 
